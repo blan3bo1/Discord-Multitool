@@ -1,6 +1,6 @@
 {
     "discord_path": "/Applications/Discord.app",
-    "discord_executable": "Discord PTB",
+    "discord_executable": "Discord",
     "log_level": "INFO",
     "max_instances": 5,
     "instance_delay": 5,
