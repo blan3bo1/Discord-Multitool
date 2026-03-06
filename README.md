@@ -5,8 +5,7 @@
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Discord](https://img.shields.io/badge/Discord-PTB%20%7C%20Canary%20%7C%20Stable-5865F2)](https://discord.com)
 
-A powerful multi‑tool for macOS that lets you run multiple Discord instances simultaneously with different accounts, and optionally auto‑complete quests on them.  
-Inspired by the minimalist dark aesthetic of [blankboii.xyz](https://blankboii.xyz).
+A powerful multi‑tool for macOS that lets you run multiple Discord instances simultaneously with different accounts, and optionally auto‑complete quests on them.
 
 ---
 
