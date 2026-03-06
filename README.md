@@ -72,10 +72,10 @@ Then add your accounts in `accounts.json` (a template will be created automatica
 
 ### 5. Run the launcher
 ```bash
-python launcher.py
+python gui.py
 ```
 
-You will see the main menu. From there you can launch accounts, manage them, or run the quest helper.
+You will see the main menu. From there, you can launch accounts, manage them, or run the quest helper.
 
 ---
 
