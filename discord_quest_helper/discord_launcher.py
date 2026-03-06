@@ -1,0 +1,203 @@
+"""
+Discord launcher module for macOS
+"""
+
+import os
+import subprocess
+import time
+import psutil
+from pathlib import Path
+from .logger import get_logger
+
+logger = get_logger()
+
+
+def launch_discord_with_debug(discord_path="/Applications/Discord.app", debug_port=9222, config=None):
+    """
+    Launch Discord with remote debugging enabled
+    
+    Args:
+        discord_path: Path to Discord.app
+        debug_port: Port for remote debugging
+        config: Configuration dictionary (optional)
+    
+    Returns:
+        subprocess.Popen object
+    """
+    
+    # Initialize config if None
+    if config is None:
+        config = {}
+    
+    # Check if Discord is already running
+    discord_processes = []
+    for proc in psutil.process_iter(['name', 'pid', 'cmdline']):
+        try:
+            proc_name = proc.info['name'] or ''
+            proc_cmdline = ' '.join(proc.info['cmdline'] or [])
+            
+            # Check for various Discord variants
+            if any(x in proc_name.lower() for x in ['discord', 'discord ptb', 'discord canary']):
+                discord_processes.append(proc)
+            elif any(x in proc_cmdline.lower() for x in ['discord', 'discord ptb', 'discord canary']):
+                discord_processes.append(proc)
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            continue
+    
+    if discord_processes:
+        logger.warning(f"Found {len(discord_processes)} Discord process(es) running. Closing them...")
+        
+        # Try to terminate gracefully first
+        for proc in discord_processes:
+            try:
+                logger.debug(f"Terminating Discord process {proc.pid}...")
+                proc.terminate()
+            except psutil.NoSuchProcess:
+                continue
+        
+        # Wait for processes to terminate
+        time.sleep(3)
+        
+        # Force kill any remaining processes
+        for proc in discord_processes:
+            try:
+                if proc.is_running():
+                    logger.debug(f"Force killing Discord process {proc.pid}...")
+                    proc.kill()
+            except psutil.NoSuchProcess:
+                continue
+        
+        # Give it a moment to fully close
+        time.sleep(2)
+        logger.info("Closed existing Discord processes")
+    
+    # Get executable name from config or try multiple possibilities
+    executable_names = []
+    
+    # Add configured executable name first
+    if config and "discord_executable" in config:
+        executable_names.append(config["discord_executable"])
+    
+    # Add common Discord executable names
+    executable_names.extend([
+        "Discord PTB",
+        "Discord Canary",
+        "Discord Development",
+        "Discord"
+    ])
+    
+    # Remove duplicates while preserving order
+    seen = set()
+    executable_names = [x for x in executable_names if not (x in seen or seen.add(x))]
+    
+    # Find the first executable that exists
+    discord_exe = None
+    for exe_name in executable_names:
+        potential_path = f"{discord_path}/Contents/MacOS/{exe_name}"
+        if os.path.exists(potential_path):
+            discord_exe = potential_path
+            logger.info(f"Found Discord executable: {discord_exe}")
+            break
+    
+    if not discord_exe:
+        error_msg = f"Discord executable not found. Tried: {', '.join(executable_names)} in {discord_path}/Contents/MacOS/"
+        logger.error(error_msg)
+        
+        # List contents of the MacOS directory for debugging
+        macos_dir = f"{discord_path}/Contents/MacOS"
+        if os.path.exists(macos_dir):
+            try:
+                files = os.listdir(macos_dir)
+                logger.info(f"Contents of {macos_dir}: {files}")
+            except Exception as e:
+                logger.error(f"Could not list directory contents: {e}")
+        
+        raise FileNotFoundError(error_msg)
+    
+    # Launch Discord with debugging flags
+    cmd = [
+        discord_exe,
+        f"--remote-debugging-port={debug_port}",
+        "--remote-allow-origins=*",
+        "--no-sandbox"
+    ]
+    
+    logger.debug(f"Launching Discord with command: {' '.join(cmd)}")
+    
+    try:
+        # Launch Discord
+        process = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            stdin=subprocess.DEVNULL,
+            start_new_session=True
+        )
+        
+        # Wait for process to start
+        time.sleep(3)
+        
+        # Verify it's running
+        if process.poll() is not None:
+            # Process died
+            stdout, stderr = process.communicate()
+            error_output = stderr.decode() if stderr else "No error output"
+            logger.error(f"Discord failed to start: {error_output}")
+            raise RuntimeError(f"Discord process terminated immediately: {error_output}")
+        
+        logger.info(f"Discord launched with PID {process.pid} and debug port {debug_port}")
+        return process
+        
+    except Exception as e:
+        logger.error(f"Failed to launch Discord: {e}")
+        raise
+
+
+def is_discord_running():
+    """Check if any Discord variant is running"""
+    for proc in psutil.process_iter(['name']):
+        try:
+            if proc.info['name'] and 'discord' in proc.info['name'].lower():
+                return True
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            continue
+    return False
+
+
+def kill_all_discord_processes():
+    """Kill all Discord processes"""
+    killed = 0
+    for proc in psutil.process_iter(['name', 'pid']):
+        try:
+            if proc.info['name'] and 'discord' in proc.info['name'].lower():
+                logger.debug(f"Killing Discord process {proc.info['pid']} ({proc.info['name']})")
+                proc.kill()
+                killed += 1
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            continue
+    
+    if killed > 0:
+        logger.info(f"Killed {killed} Discord process(es)")
+        time.sleep(2)
+    
+    return killed
+
+
+def find_discord_installation():
+    """Try to find Discord installation in common locations"""
+    common_paths = [
+        "/Applications/Discord.app",
+        "/Applications/Discord PTB.app",
+        "/Applications/Discord Canary.app",
+        str(Path.home() / "Applications/Discord.app"),
+        str(Path.home() / "Applications/Discord PTB.app"),
+        str(Path.home() / "Applications/Discord Canary.app")
+    ]
+    
+    for path in common_paths:
+        if os.path.exists(path):
+            logger.info(f"Found Discord installation at: {path}")
+            return path
+    
+    logger.warning("No Discord installation found in common locations")
+    return None

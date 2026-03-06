@@ -1,0 +1,6 @@
+websocket-client==1.6.1
+psutil==5.9.5
+requests==2.31.0
+colorama==0.4.6
+pyobjc==10.0
+py2app==0.28.6
