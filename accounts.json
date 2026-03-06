@@ -1,0 +1,16 @@
+{
+    "accounts": [
+        {
+            "name": "Main Account",
+            "token": "YOUR_DISCORD_TOKEN_HERE",
+            "enabled": true,
+            "notes": "Primary account"
+        },
+        {
+            "name": "Alt Account",
+            "token": "YOUR_OTHER_TOKEN_HERE",
+            "enabled": true,
+            "notes": "Secondary account"
+        }
+    ]
+}
