@@ -37,8 +37,8 @@ A powerful multi‑tool for macOS that lets you run multiple Discord instances s
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/blan3bo1/Discord-Quest-Completer.git
-cd Discord-Quest-Completer
+git clone https://github.com/blan3bo1/Discord-Multitool.git
+cd Discord-Multitool
 ```
 
 ### 2. Set up a virtual environment
