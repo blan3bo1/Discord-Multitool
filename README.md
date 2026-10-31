@@ -15,7 +15,7 @@ A powerful multi‑tool for macOS that lets you run multiple Discord instances s
 - **Account Manager** – Store and manage multiple Discord tokens with names and notes.
 - **Auto‑Login** – Automatically inject tokens into new instances so you don’t have to log in manually.
 - **Quest Helper** – Automatically detect and complete active Discord quests on running instances (video, play, stream, activity).
-- **Dark Minimalist GUI** – Clean, black‑based interface with snowflake decorations and status indicators (inspired by blankboii.xyz).
+- **Dark Minimalist GUI** – Clean, black‑based interface with snowflake decorations and status indicators.
 - **Window Visibility Fixes** – Ensures windows actually appear on screen using multiple activation techniques.
 - **Conflict Prevention** – Intelligently kills only unmanaged Discord processes, keeping your own instances and their children alive.
 - **Isolated Data Directories** – Each account gets its own user data folder, preventing session conflicts.
